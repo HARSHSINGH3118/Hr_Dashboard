@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useBookmarks } from "@/context/BookmarkContext";
+import { assignDepartment, assignRating } from "@/lib/employeeUtils";
 import DepartmentChart from "@/components/DepartmentChart";
 import BookmarkTrend from "@/components/BookmarkTrend";
-import { assignDepartment, assignRating } from "@/lib/employeeUtils";
+import { useBookmarks, BookmarkProvider } from "@/context/BookmarkContext";
 
-export default function AnalyticsPage() {
+function AnalyticsContent() {
   const [users, setUsers] = useState([]);
-  const { bookmarkedUsers } = useBookmarks();
+  const { bookmarkedUsers } = useBookmarks(); // ✅ safe here now
 
   useEffect(() => {
     fetch("https://dummyjson.com/users?limit=20")
@@ -25,7 +25,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold mb-4">📊 Analytics Dashboard</h1>
+      <h1 className="text-2xl font-bold">📊 Analytics</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <DepartmentChart users={users} />
         <BookmarkTrend
@@ -35,4 +35,9 @@ export default function AnalyticsPage() {
       </div>
     </div>
   );
+}
+
+// ✅ Wrap the Analytics content in BookmarkProvider
+export default function AnalyticsPage() {
+  return <AnalyticsContent />;
 }

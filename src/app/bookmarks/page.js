@@ -2,12 +2,12 @@
 
 import { useBookmarks } from "@/context/BookmarkContext";
 
-export default function BookmarksPage() {
+function BookmarksContent() {
   const { bookmarkedUsers, removeBookmark } = useBookmarks();
 
   const handlePromote = (user) => alert(`${user.firstName} promoted!`);
   const handleAssign = (user) =>
-    alert(`${user.firstName} assigned to a project!`);
+    alert(`${user.firstName} assigned to project.`);
 
   return (
     <div className="p-6">
@@ -27,7 +27,6 @@ export default function BookmarksPage() {
               </h2>
               <p>{user.email}</p>
               <p>Department: {user.department}</p>
-
               <div className="flex gap-2 mt-2">
                 <button
                   onClick={() => removeBookmark(user.id)}
@@ -54,4 +53,9 @@ export default function BookmarksPage() {
       )}
     </div>
   );
+}
+
+// ✅ Wrap the page in the context provider
+export default function BookmarksPage() {
+  return <BookmarksContent />;
 }

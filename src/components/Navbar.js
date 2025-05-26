@@ -2,13 +2,19 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { signOut } from "next-auth/react";
 
-export default function Navbar({ onToggleFilter, showFilter }) {
+export default function Navbar() {
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
+
+  // Get auth state from cookie or manually control this toggle later
+  const isLoggedIn =
+    typeof window !== "undefined" &&
+    document.cookie.includes("next-auth.session-token");
 
   return (
     <nav className="bg-white dark:bg-gray-900 shadow px-4 py-3 flex flex-col gap-2">
@@ -36,12 +42,21 @@ export default function Navbar({ onToggleFilter, showFilter }) {
             Analytics
           </Link>
 
-          {/* <button
-            onClick={onToggleFilter}
-            className="text-sm px-2 py-1 bg-purple-600 text-white rounded"
-          >
-            {showFilter ? "Hide Filters" : "Show Filters"}
-          </button> */}
+          {isLoggedIn ? (
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="text-sm px-2 py-1 bg-red-600 text-white rounded"
+            >
+              Logout
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="text-sm px-3 py-1 bg-blue-600 text-white rounded"
+            >
+              Login
+            </Link>
+          )}
 
           <button
             onClick={() => setDark(!dark)}
