@@ -6,10 +6,14 @@ import { assignDepartment, assignRating } from "@/lib/employeeUtils";
 import useSearch from "@/hooks/useSearch";
 import EmployeeCard from "@/components/EmployeeCard";
 import FilterBar from "@/components/FilterBar";
+import CreateUserModal from "@/components/CreateUserModal";
 
 export default function HomePage() {
   const [users, setUsers] = useState([]);
   const [showFilter, setShowFilter] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const USERS_PER_PAGE = 6;
   const router = useRouter();
 
   useEffect(() => {
@@ -35,12 +39,25 @@ export default function HomePage() {
     filteredUsers,
   } = useSearch(users);
 
+  const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
+  const startIndex = (currentPage - 1) * USERS_PER_PAGE;
+  const paginatedUsers = filteredUsers.slice(
+    startIndex,
+    startIndex + USERS_PER_PAGE
+  );
+
   const handleView = (user) => router.push(`/employee/${user.id}`);
   const handlePromote = (user) => alert(`${user.firstName} promoted!`);
+  const handleCreateUser = (newUser) => setUsers((prev) => [newUser, ...prev]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query, selectedDepartments, selectedRatings]);
 
   return (
     <div className="p-4">
-      {/* Button to toggle filter from inside page */}
+      {/* Toggle Filter Button */}
       <div className="flex justify-end mb-4">
         <button
           onClick={() => setShowFilter((prev) => !prev)}
@@ -50,6 +67,7 @@ export default function HomePage() {
         </button>
       </div>
 
+      {/* Filter Panel */}
       {showFilter && (
         <FilterBar
           query={query}
@@ -61,8 +79,9 @@ export default function HomePage() {
         />
       )}
 
+      {/* User Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {filteredUsers.map((user) => (
+        {paginatedUsers.map((user) => (
           <EmployeeCard
             key={user.id}
             user={user}
@@ -70,6 +89,48 @@ export default function HomePage() {
             onPromote={handlePromote}
           />
         ))}
+      </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex justify-center items-center gap-4">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 bg-gray-300 dark:bg-gray-700 text-sm rounded disabled:opacity-50"
+          >
+            ⬅ Prev
+          </button>
+          <span className="text-sm text-gray-600 dark:text-gray-300">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 bg-gray-300 dark:bg-gray-700 text-sm rounded disabled:opacity-50"
+          >
+            Next ➡
+          </button>
+        </div>
+      )}
+
+      {/* Create User Modal */}
+      <CreateUserModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onCreate={handleCreateUser}
+      />
+
+      {/* Floating Create Button */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <button
+          onClick={() => setShowModal(true)}
+          className="px-4 py-2 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700"
+        >
+          + Create User
+        </button>
       </div>
     </div>
   );
