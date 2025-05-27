@@ -1,49 +1,55 @@
 "use client";
-import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import OverviewTab from "@/components/Tabs/OverviewTab";
 import ProjectsTab from "@/components/Tabs/ProjectsTab";
 import FeedbackTab from "@/components/Tabs/FeedbackTab";
 
-export default function EmployeeTabs({ user }) {
-  const [activeTab, setActiveTab] = useState("overview");
+export default function EmployeePage() {
+  const { id } = useParams();
+  const [user, setUser] = useState(null);
+  const [tab, setTab] = useState("overview");
 
-  const tabComponents = {
-    overview: <OverviewTab user={user} />,
-    projects: <ProjectsTab user={user} />,
-    feedback: <FeedbackTab user={user} />,
-  };
+  useEffect(() => {
+    fetch(`https://dummyjson.com/users/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setUser({
+          ...data,
+          department: "engineering", // mock
+          rating: 4, // mock
+        });
+      });
+  }, [id]);
+
+  if (!user) return <p className="p-4">Loading user...</p>;
 
   return (
-    <div className="mt-4">
-      <div className="flex gap-4 border-b pb-2">
-        {["overview", "projects", "feedback"].map((tab) => (
+    <div className="p-4 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">
+        {user.firstName} {user.lastName}
+      </h1>
+
+      <div className="flex gap-4 border-b pb-2 mb-4">
+        {["overview", "projects", "feedback"].map((t) => (
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
+            key={t}
+            onClick={() => setTab(t)}
             className={`text-sm px-3 py-1 rounded ${
-              activeTab === tab
+              tab === t
                 ? "bg-blue-600 text-white"
                 : "bg-gray-200 dark:bg-gray-700 text-black dark:text-white"
             }`}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
         ))}
       </div>
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-          className="mt-4"
-        >
-          {tabComponents[activeTab]}
-        </motion.div>
-      </AnimatePresence>
+      {tab === "overview" && <OverviewTab user={user} />}
+      {tab === "projects" && <ProjectsTab user={user} />}
+      {tab === "feedback" && <FeedbackTab user={user} />}
     </div>
   );
 }

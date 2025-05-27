@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const DEPARTMENTS = ["hr", "engineering", "sales", "marketing", "finance"];
 
@@ -13,6 +13,12 @@ export default function CreateUserModal({ isOpen, onClose, onCreate }) {
     department: "",
     rating: 3,
   });
+
+  const [clientNow, setClientNow] = useState(null);
+
+  useEffect(() => {
+    setClientNow(Date.now());
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,7 +45,7 @@ export default function CreateUserModal({ isOpen, onClose, onCreate }) {
     }
 
     const newUser = {
-      id: Date.now(),
+      id: clientNow ?? Date.now(),
       ...form,
       age: parseInt(form.age),
       rating: parseInt(form.rating),
