@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { assignDepartment, assignRating } from "@/lib/employeeUtils";
 import DepartmentChart from "@/components/DepartmentChart";
 import BookmarkTrend from "@/components/BookmarkTrend";
-import { useBookmarks, BookmarkProvider } from "@/context/BookmarkContext";
+import { useBookmarks } from "@/context/BookmarkContext";
 
 function AnalyticsContent() {
   const [users, setUsers] = useState([]);
-  const { bookmarkedUsers } = useBookmarks(); // ✅ safe here now
+  const { bookmarkedUsers } = useBookmarks();
 
   useEffect(() => {
     fetch("https://dummyjson.com/users?limit=20")
@@ -20,24 +20,47 @@ function AnalyticsContent() {
           rating: assignRating(),
         }));
         setUsers(enriched);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch users:", err);
+        setUsers([]);
       });
   }, []);
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">📊 Analytics</h1>
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <h1 className="text-xl md:text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
+        📊 Analytics Overview
+      </h1>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <DepartmentChart users={users} />
-        <BookmarkTrend
-          totalUsers={users.length}
-          bookmarkedCount={bookmarkedUsers.length}
-        />
+        {/* Bar Chart */}
+        <div className="p-4 bg-white dark:bg-gray-800 shadow rounded h-[350px]">
+          <h2 className="text-md font-medium mb-2 text-gray-700 dark:text-gray-200">
+            Department-wise Performance
+          </h2>
+          {users.length > 0 ? (
+            <DepartmentChart users={users} />
+          ) : (
+            <p className="text-gray-500">Loading department chart...</p>
+          )}
+        </div>
+
+        {/* Line Chart */}
+        <div className="p-4 bg-white dark:bg-gray-800 shadow rounded h-[350px]">
+          <h2 className="text-md font-medium mb-2 text-gray-700 dark:text-gray-200">
+            Bookmark Trends
+          </h2>
+          <BookmarkTrend
+            totalUsers={users.length}
+            bookmarkedCount={bookmarkedUsers.length}
+          />
+        </div>
       </div>
     </div>
   );
 }
 
-// ✅ Wrap the Analytics content in BookmarkProvider
 export default function AnalyticsPage() {
   return <AnalyticsContent />;
 }

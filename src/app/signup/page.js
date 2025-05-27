@@ -2,12 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -16,16 +14,18 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const res = await signIn("credentials", {
-      redirect: false,
-      email: form.email,
-      password: form.password,
+    const res = await fetch("/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
     });
 
+    const result = await res.json();
     if (res.ok) {
-      router.push("/");
+      alert("Signup successful. Please log in.");
+      router.push("/login");
     } else {
-      setError("Invalid credentials. Please try again.");
+      alert(result.error || "Signup failed");
     }
   };
 
@@ -35,8 +35,15 @@ export default function LoginPage() {
         onSubmit={handleSubmit}
         className="bg-white dark:bg-gray-800 p-6 rounded shadow-md w-full max-w-sm space-y-4"
       >
-        <h2 className="text-lg font-semibold text-center">Login</h2>
-
+        <h2 className="text-lg font-semibold text-center">Sign Up</h2>
+        <input
+          type="text"
+          name="name"
+          placeholder="Full Name"
+          className="w-full p-2 rounded border dark:bg-gray-700 dark:text-white"
+          value={form.name}
+          onChange={handleChange}
+        />
         <input
           type="email"
           name="email"
@@ -45,7 +52,6 @@ export default function LoginPage() {
           value={form.email}
           onChange={handleChange}
         />
-
         <input
           type="password"
           name="password"
@@ -54,20 +60,16 @@ export default function LoginPage() {
           value={form.password}
           onChange={handleChange}
         />
-
-        {error && <p className="text-sm text-red-500">{error}</p>}
-
         <button
           type="submit"
           className="w-full bg-blue-600 text-white p-2 rounded"
         >
-          Login
+          Sign Up
         </button>
-
         <p className="text-sm text-center text-gray-500">
-          Don’t have an account?{" "}
-          <a href="/signup" className="text-blue-600 underline">
-            Sign up
+          Already have an account?{" "}
+          <a href="/login" className="text-blue-600 underline">
+            Login
           </a>
         </p>
       </form>

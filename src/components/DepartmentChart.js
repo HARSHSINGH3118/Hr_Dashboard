@@ -1,6 +1,5 @@
 "use client";
 
-import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   BarElement,
@@ -9,26 +8,36 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { Bar } from "react-chartjs-2";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 export default function DepartmentChart({ users }) {
-  const departments = ["HR", "Engineering", "Sales", "Marketing", "Finance"];
+  if (!users || users.length === 0) {
+    return <p className="text-gray-500">Loading...</p>;
+  }
 
-  const departmentData = departments.map((dept) => {
-    const deptUsers = users.filter((u) => u.department === dept);
-    const avgRating = deptUsers.length
-      ? deptUsers.reduce((sum, u) => sum + u.rating, 0) / deptUsers.length
-      : 0;
-    return avgRating.toFixed(2);
+  const departmentStats = {};
+  users.forEach((user) => {
+    const dept = user.department;
+    if (!departmentStats[dept]) {
+      departmentStats[dept] = { total: 0, count: 0 };
+    }
+    departmentStats[dept].total += user.rating;
+    departmentStats[dept].count += 1;
   });
 
+  const labels = Object.keys(departmentStats);
+  const avgRatings = labels.map(
+    (dept) => departmentStats[dept].total / departmentStats[dept].count
+  );
+
   const data = {
-    labels: departments,
+    labels,
     datasets: [
       {
-        label: "Avg Rating",
-        data: departmentData,
+        label: "Average Rating",
+        data: avgRatings,
         backgroundColor: "#3b82f6", // Tailwind blue-500
         borderRadius: 6,
       },
@@ -37,31 +46,27 @@ export default function DepartmentChart({ users }) {
 
   const options = {
     responsive: true,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: "#1e40af",
-        titleColor: "#fff",
-        bodyColor: "#fff",
-      },
-    },
+    maintainAspectRatio: false,
     scales: {
       y: {
-        ticks: { color: "#64748b" },
         beginAtZero: true,
         max: 5,
+        ticks: {
+          stepSize: 1,
+        },
       },
-      x: {
-        ticks: { color: "#64748b" },
+    },
+    plugins: {
+      legend: {
+        labels: {
+          color: "#6b7280",
+        },
       },
     },
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded shadow p-4 w-full">
-      <h2 className="text-lg font-semibold mb-3">
-        📊 Avg Rating by Department
-      </h2>
+    <div style={{ width: "100%", height: "100%" }}>
       <Bar data={data} options={options} />
     </div>
   );

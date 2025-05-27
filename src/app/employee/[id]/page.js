@@ -1,40 +1,49 @@
 "use client";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import OverviewTab from "@/components/Tabs/OverviewTab";
+import ProjectsTab from "@/components/Tabs/ProjectsTab";
+import FeedbackTab from "@/components/Tabs/FeedbackTab";
 
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { assignDepartment, assignRating } from "@/lib/employeeUtils";
-import TabbedUI from "@/components/TabbedUI";
+export default function EmployeeTabs({ user }) {
+  const [activeTab, setActiveTab] = useState("overview");
 
-export default function EmployeeDetailPage() {
-  const { id } = useParams();
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    fetch(`https://dummyjson.com/users/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        data.department = assignDepartment();
-        data.rating = assignRating();
-        setUser(data);
-      });
-  }, [id]);
-
-  if (!user) return <p className="p-4">Loading user...</p>;
+  const tabComponents = {
+    overview: <OverviewTab user={user} />,
+    projects: <ProjectsTab user={user} />,
+    feedback: <FeedbackTab user={user} />,
+  };
 
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">
-        {user.firstName} {user.lastName}
-      </h1>
-      <p>Email: {user.email}</p>
-      <p>Phone: {user.phone}</p>
-      <p>Age: {user.age}</p>
-      <p>Department: {user.department}</p>
-      <p className="text-yellow-500">
-        Rating: {"★".repeat(user.rating)}
-        {"☆".repeat(5 - user.rating)}
-      </p>
-      <TabbedUI user={user} />
+    <div className="mt-4">
+      <div className="flex gap-4 border-b pb-2">
+        {["overview", "projects", "feedback"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`text-sm px-3 py-1 rounded ${
+              activeTab === tab
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 dark:bg-gray-700 text-black dark:text-white"
+            }`}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
+          className="mt-4"
+        >
+          {tabComponents[activeTab]}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

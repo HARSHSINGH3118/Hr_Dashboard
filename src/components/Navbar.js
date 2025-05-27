@@ -1,70 +1,135 @@
 "use client";
 
-import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
+import Link from "next/link";
 
-export default function Navbar() {
-  const [dark, setDark] = useState(false);
+export default function Navbar({ session }) {
+  const [theme, setTheme] = useState("light");
 
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-  }, [dark]);
+    const saved = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+    const initial = saved || (prefersDark ? "dark" : "light");
 
-  // Get auth state from cookie or manually control this toggle later
-  const isLoggedIn =
-    typeof window !== "undefined" &&
-    document.cookie.includes("next-auth.session-token");
+    document.documentElement.classList.toggle("dark", initial === "dark");
+    setTheme(initial);
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    localStorage.setItem("theme", next);
+    document.documentElement.classList.toggle("dark", next === "dark");
+    setTheme(next);
+  };
+
+  const isLoggedIn = !!session;
 
   return (
-    <nav className="bg-white dark:bg-gray-900 shadow px-4 py-3 flex flex-col gap-2">
-      <div className="flex justify-between items-center">
-        <h1 className="text-xl font-bold text-gray-800 dark:text-white">
-          HR Dashboard
-        </h1>
-        <div className="flex items-center gap-4">
-          <Link
-            href="/"
-            className="text-sm text-gray-700 dark:text-gray-300 hover:underline"
-          >
-            Dashboard
-          </Link>
-          <Link
-            href="/bookmarks"
-            className="text-sm text-gray-700 dark:text-gray-300 hover:underline"
-          >
-            Bookmarks
-          </Link>
-          <Link
-            href="/analytics"
-            className="text-sm text-gray-700 dark:text-gray-300 hover:underline"
-          >
-            Analytics
-          </Link>
+    <nav
+      style={{
+        backgroundColor: theme === "dark" ? "#1f1f1f" : "#ffffff",
+        color: theme === "dark" ? "#f5f5f5" : "#1f1f1f",
+        padding: "12px 24px",
+        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
+      }}
+    >
+      <div style={{ fontWeight: 700, fontSize: "20px" }}>HR Dashboard</div>
 
-          {isLoggedIn ? (
+      <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+        <Link
+          href="/"
+          style={{ fontSize: "14px", color: "inherit", textDecoration: "none" }}
+        >
+          Dashboard
+        </Link>
+        <Link
+          href="/bookmarks"
+          style={{ fontSize: "14px", color: "inherit", textDecoration: "none" }}
+        >
+          Bookmarks
+        </Link>
+        <Link
+          href="/analytics"
+          style={{ fontSize: "14px", color: "inherit", textDecoration: "none" }}
+        >
+          Analytics
+        </Link>
+
+        {isLoggedIn ? (
+          <>
+            <span style={{ fontSize: "14px", opacity: 0.8 }}>
+              {session.user?.name}
+            </span>
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
-              className="text-sm px-2 py-1 bg-red-600 text-white rounded"
+              style={{
+                padding: "6px 12px",
+                fontSize: "13px",
+                backgroundColor: "#e53935",
+                color: "#fff",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
             >
               Logout
             </button>
-          ) : (
+          </>
+        ) : (
+          <>
             <Link
               href="/login"
-              className="text-sm px-3 py-1 bg-blue-600 text-white rounded"
+              style={{
+                padding: "6px 12px",
+                backgroundColor: "#3b82f6",
+                color: "#fff",
+                fontSize: "13px",
+                borderRadius: "4px",
+                textDecoration: "none",
+              }}
             >
               Login
             </Link>
-          )}
 
-          <button
-            onClick={() => setDark(!dark)}
-            className="px-2 py-1 text-sm bg-gray-200 dark:bg-gray-700 rounded text-gray-800 dark:text-white"
-          >
-            {dark ? "☀️ Light" : "🌙 Dark"}
-          </button>
-        </div>
+            <Link
+              href="/signup"
+              style={{
+                padding: "6px 12px",
+                backgroundColor: "#10b981",
+                color: "#fff",
+                fontSize: "13px",
+                borderRadius: "4px",
+                textDecoration: "none",
+              }}
+            >
+              Sign Up
+            </Link>
+          </>
+        )}
+
+        <button
+          onClick={toggleTheme}
+          style={{
+            padding: "6px 12px",
+            backgroundColor: theme === "dark" ? "#374151" : "#e5e7eb",
+            color: theme === "dark" ? "#fff" : "#000",
+            fontSize: "13px",
+            borderRadius: "4px",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          {theme === "dark" ? "☀ Light" : "🌙 Dark"}
+        </button>
       </div>
     </nav>
   );

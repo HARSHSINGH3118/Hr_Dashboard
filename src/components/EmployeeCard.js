@@ -1,18 +1,39 @@
 "use client";
 
 import { useBookmarks } from "@/context/BookmarkContext";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
+import { motion, useAnimation } from "framer-motion";
 
 export default function EmployeeCard({ user, onView, onPromote }) {
   const { bookmarkedUsers, addBookmark } = useBookmarks();
+  const controls = useAnimation();
 
-  // Check if user is already bookmarked
   const isBookmarked = useMemo(() => {
     return bookmarkedUsers.some((u) => u.id === user.id);
   }, [bookmarkedUsers, user.id]);
 
+  // 👇 Trigger initial fade-in + scale animation
+  useEffect(() => {
+    controls.start({ opacity: 1, scale: 1 });
+  }, [controls]);
+
   return (
-    <div className="bg-white dark:bg-gray-800 p-4 rounded shadow space-y-2">
+    <motion.div
+      drag="x"
+      dragConstraints={{ left: -100, right: 0 }}
+      onDragEnd={(_, info) => {
+        if (info.offset.x < -80 && !isBookmarked) {
+          controls.start({ x: -120, opacity: 0 });
+          setTimeout(() => addBookmark(user), 300);
+        } else {
+          controls.start({ x: 0 }); // Snap back
+        }
+      }}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={controls}
+      transition={{ duration: 0.3 }}
+      className="bg-white dark:bg-gray-800 p-4 rounded shadow space-y-2"
+    >
       {/* Full Name */}
       <h2 className="text-lg font-semibold text-black dark:text-white">
         {user.firstName} {user.lastName}
@@ -69,6 +90,6 @@ export default function EmployeeCard({ user, onView, onPromote }) {
           Promote
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 }

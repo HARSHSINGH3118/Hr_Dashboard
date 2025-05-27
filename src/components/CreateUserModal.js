@@ -33,6 +33,11 @@ export default function CreateUserModal({ isOpen, onClose, onCreate }) {
       return;
     }
 
+    if (parseInt(form.age) <= 0) {
+      alert("Age must be a positive number.");
+      return;
+    }
+
     const newUser = {
       id: Date.now(),
       ...form,
@@ -94,6 +99,7 @@ export default function CreateUserModal({ isOpen, onClose, onCreate }) {
           type="number"
           name="age"
           placeholder="Age"
+          min="1"
           className="w-full p-2 rounded border dark:bg-gray-700 dark:text-white"
           value={form.age}
           onChange={handleChange}
